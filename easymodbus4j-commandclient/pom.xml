@@ -8,7 +8,23 @@
     <name>easymodbus4j-commandclient</name>
     <properties>
         <skipAssembly>true</skipAssembly>
-        <jdk.version>1.8</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- 升级为 Java 21 -->
+        <jdk.version>21</jdk.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+        <!-- 统一版本属性 -->
+        <lombok.version>1.18.32</lombok.version>
+        <netty.version>4.1.108.Final</netty.version>
+        <fastjson.version>1.2.83</fastjson.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <logback.version>1.2.13</logback.version>
+        <guava.version>32.1.3-jre</guava.version>
+        <!-- 测试依赖升级：覆盖父 BOM 的 junit/h2 版本属性 -->
+        <junit.version>4.13.2</junit.version>
+        <h2.version>2.2.224</h2.version>
+        <junit-jupiter.version>5.10.2</junit-jupiter.version>
     </properties>
     <parent>
         <groupId>com.github.zengfr.project</groupId>
@@ -16,19 +32,97 @@
         <version>0.0.2</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
+    <dependencyManagement>
+        <dependencies>
+            <!-- 导入 netty BOM 覆盖父 POM 钉死的 4.1.33 子模块版本，保证依赖收敛 -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <!-- 导入 JUnit BOM 覆盖父 BOM 硬编码的 junit-jupiter 5.3.2 -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
+        <!-- 覆盖父 POM 的老旧 Lombok，解除编译期 Javac 崩溃 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- 覆盖父 BOM 硬编码的旧版 h2（仅测试域，源码未使用） -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JUnit 5：JDK 21 项目标准测试框架 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- 覆盖 Netty 版本消除 Unsafe 反射警告 -->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <!-- 代码直接引用的 netty 模块显式声明（版本由上方 netty-bom 管理） -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-buffer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -40,5 +134,34 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
         </dependency>
+        <!-- 显式覆盖父 POM 中的旧版依赖，消除安全隐患 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <!-- 升级支持 JDK 21 的编译器插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

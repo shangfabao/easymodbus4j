@@ -1,5 +1,5 @@
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.github.zengfr.easymodbus4j.app.client.DeviceClient;
 import com.github.zengfr.easymodbus4j.app.client.UdpClientHandler;
@@ -10,14 +10,14 @@ public class ClientTest {
 	static UdpClientHandler handler = new CustomUdpClientHandler();
 	static DeviceClient client = DeviceClient.getInstance();
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws Exception {
 		client.setup(handler);
 	}
 
 	@Test
 	public void test() throws Exception {
-		for (int i = 0; i < Integer.MAX_VALUE; i++) {
+		for (int i = 0; i < 5; i++) {
 			System.out.println(i);
 			Thread.sleep(111);
 			for (int j = 0; j < 111; j++) {

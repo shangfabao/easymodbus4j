@@ -7,6 +7,18 @@
 	<version>0.0.5</version>
 	<properties>
 		<skipAssembly>true</skipAssembly>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 升级为 Java 21 -->
+		<jdk.version>21</jdk.version>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
+		<maven.compiler.release>21</maven.compiler.release>
+		<!-- 统一版本属性 -->
+		<lombok.version>1.18.32</lombok.version>
+		<netty.version>4.1.108.Final</netty.version>
+		<fastjson.version>1.2.83</fastjson.version>
+		<logback.version>1.2.13</logback.version>
+		<guava.version>32.1.3-jre</guava.version>
 	</properties>
 	<parent>
 		<groupId>com.github.zengfr.project</groupId>
@@ -14,11 +26,95 @@
 		<version>0.0.2</version>
 		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
+	<dependencyManagement>
+		<dependencies>
+			<!-- 导入 netty BOM 覆盖父 POM 钉死的 4.1.33 子模块版本，保证依赖收敛 -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-bom</artifactId>
+				<version>${netty.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
+		<!-- 覆盖父 POM 的老旧 Lombok，解除编译期 Javac 崩溃 -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<artifactId>easymodbus4j</artifactId>
 			<groupId>com.github.zengfr</groupId>
 			<version>0.0.5</version>
 		</dependency>
+		<!-- 覆盖 Netty 版本消除 Unsafe 反射警告 -->
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<!-- 代码直接引用的构件显式声明，避免版本漂移 -->
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.zengfr</groupId>
+			<artifactId>easymodbus4j-core</artifactId>
+			<version>0.0.5</version>
+		</dependency>
+		<!-- 显式覆盖父 POM 中的旧版依赖，消除安全隐患 -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>${fastjson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+			<!-- 升级支持 JDK 21 的编译器插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<release>21</release>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
